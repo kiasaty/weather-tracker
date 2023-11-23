@@ -16,8 +16,6 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	database.Migrate()
-
 	http.HandleFunc("/weather", fetchWeathers)
 
 	http.ListenAndServe(":8090", nil)
@@ -44,16 +42,14 @@ func fetchWeathers(w http.ResponseWriter, req *http.Request) {
 func fetchWeather(locationName string, coordinates [2]float64, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	result := openweathermap.GetCurrentWeather(
+	currentWeatherData := openweathermap.GetCurrentWeather(
 		coordinates[0],
 		coordinates[1],
 	)
 
-	temp := result["main"].(map[string]interface{})["temp"]
-
 	db := database.Connect()
 
-	weather := models.Weather{LocationName: locationName, Temp: float32(temp.(float64))}
+	weather := models.Weather{LocationName: locationName, Temp: float32(currentWeatherData.Main.Temperature)}
 
 	db.Create(&weather)
 }
