@@ -47,9 +47,16 @@ func fetchWeather(locationName string, coordinate models.Coordinate, wg *sync.Wa
 		coordinate.Latitude,
 	)
 
-	db := database.Connect()
+	dbClient, err := database.NewDatabaseClient()
 
-	weather := models.Weather{LocationName: locationName, Temp: float32(currentWeatherData.Main.Temperature)}
+	if err != nil {
+		panic("Can not connect to database!")
+	}
 
-	db.Create(&weather)
+	weather := models.Weather{
+		LocationName: locationName,
+		Temp:         float32(currentWeatherData.Main.Temperature),
+	}
+
+	dbClient.CreateWeather(&weather)
 }
